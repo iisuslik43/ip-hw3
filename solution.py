@@ -7,16 +7,22 @@ def read_data():
     return [[float(number) for number in line.split()] for line in content.split('\n')]
 
 
-def find_ranks(data):
-    data.sort(key=lambda x: x[1])
-    data = [[x[0], x[1], len(data) - i] for i, x in enumerate(data)]
-    data.sort()
-
+def calculate_mean_rank(data):
     rank = {}
     for x, y, i in data:
         rank[y] = rank.get(y, []) + [i]
     rank = {y: np.mean(y_ranks) for y, y_ranks in rank.items()}
-    ranks = [rank[y] for x, y, i in data]
+    return rank
+
+
+def find_ranks(data):
+    data.sort(key=lambda pair: pair[1])
+    data = [[x, y, len(data) - i] for i, (x, y) in enumerate(data)]
+
+    mean_rank = calculate_mean_rank(data)
+
+    data.sort(key=lambda pair: pair[0])
+    ranks = [mean_rank[y] for x, y, i in data]
     return ranks
 
 
@@ -36,9 +42,11 @@ def main():
     R1 = sum(ranks[:p])
     R2 = sum(ranks[(N - p):])
 
-    standard_deviation = (N + 0.5) * np.sqrt(p / 6)
+    standard_error = (N + 0.5) * np.sqrt(p / 6)
     mera = (R1 - R2) / (p * (N - p))
-    write_to_file([int(round(R1 - R2)), int(round(standard_deviation)), round(mera, 2)])
+    write_to_file([int(round(R1 - R2)),
+                   int(round(standard_error)),
+                   round(mera, 2)])
 
 
 if __name__ == '__main__':
